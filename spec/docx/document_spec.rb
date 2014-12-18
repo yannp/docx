@@ -20,6 +20,11 @@ describe Docx::Document do
       expect(@doc.text).to eq("hello\nworld")
     end
 
+    it 'should read a remote document' do
+      remote_doc = Docx::Document.open('https://s3.eu-central-1.amazonaws.com/docx-gem-fixtures/basic.docx')
+      expect(remote_doc.text).to eq("hello\nworld")
+    end
+
     it 'should read bookmarks' do
       expect(@doc.bookmarks.size).to eq(1)
       expect(@doc.bookmarks['test_bookmark']).to_not eq(nil)

@@ -22,6 +22,7 @@ module Docx
     
     def initialize(path, &block)
       @replace = {}
+      path = download_uri(path) if uri?(path)
       @zip = Zip::File.open(path)
       @document_xml = @zip.read('word/document.xml')
       @doc = Nokogiri::XML(@document_xml)
@@ -143,6 +144,33 @@ module Docx
 
     def parse_table_from(t_node)
       Elements::Containers::Table.new(t_node)
+    end
+
+    def download_uri(uri)
+      require 'open-uri'
+      tempfilename = File.join(make_tmpdir, File.basename(uri))
+      begin
+        File.open(tempfilename, 'wb') do |file|
+          open(uri, 'User-Agent' => "Ruby/#{RUBY_VERSION}") do |net|
+            file.write(net.read)
+          end
+        end
+      rescue OpenURI::HTTPError
+        raise "could not open #{uri}"
+      end
+      tempfilename
+    end
+
+    def make_tmpdir(prefix = nil, root = nil, &block)
+      prefix = 'docx_'
+      prefix += prefix if prefix
+      Dir.mktmpdir(prefix, root || ENV['DOCX_TMP'], &block)
+    end
+
+    def uri?(path)
+      path.start_with?('http://', 'https://')
+    rescue
+      false
     end
   end
 end
