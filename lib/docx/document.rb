@@ -146,9 +146,19 @@ module Docx
       Elements::Containers::Table.new(t_node)
     end
 
+    def find_basename(filename)
+      if uri?(filename)
+        require 'uri'
+        uri = URI::parse filename
+        File.basename(uri.path)
+      else
+        File.basename(filename)
+      end
+    end
+
     def download_uri(uri)
       require 'open-uri'
-      tempfilename = File.join(make_tmpdir, File.basename(uri))
+      tempfilename = File.join(make_tmpdir, find_basename(uri))
       begin
         File.open(tempfilename, 'wb') do |file|
           open(uri, 'User-Agent' => "Ruby/#{RUBY_VERSION}") do |net|
